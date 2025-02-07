@@ -35,18 +35,35 @@ def create():
 
 #Ler as informações da tabela
 
-def read():
-    comando_edit = f'SELECT * FROM contatos'
-    cursor.execute(comando_edit)
+#Função de atualizar tabela
+def atualizar_tabela():
+
+    entrada_nome.delete(0,END)
+    entrada_telefone.delete(0,END)
+    entrada_email.delete(0,END)
+    entrada_data.delete(0,END)
+    entrada_notas.delete(0,END)
+
+    for dado in tabela.get_children():
+        tabela.delete(dado)
+
+    ler_todos = f'SELECT nome, telefone, email, data_de_nascimento, notas FROM contatos ORDER BY nome'
+    cursor.execute(ler_todos)
     resultado = cursor.fetchall()
-    print(resultado)
+
+    for valor in resultado:
+        tabela.insert(parent= '', index='end', values=valor)
 
 #Alterar alguma informação
 
 def update():
-    nome = ""
+    nome = nome_inserido.get()
+    telefone = telefone_inserido.get()
+    email = email_inserido.get()
+    data_de_nascimento = data_inserida.get()
+    notas = notas_inseridas.get()
     
-    comando_update = f'UPDATE contatos SET = WHERE nome = "{nome}"'
+    comando_update = f'UPDATE contatos SET telefone= "{telefone}", email= "{email}", data_de_nascimento= "{data_de_nascimento}", notas= "{notas}" WHERE nome = "{nome}"'
     cursor.execute(comando_update)
     conexaosql.commit()
 
@@ -59,6 +76,66 @@ def delete():
     cursor.execute(comando_delete)
     conexaosql.commit()
 
+#Funções de busca
+def buscar_nome():
+    nome = nome_inserido.get()
+
+    for dado in tabela.get_children():
+        tabela.delete(dado)
+    comando_busca_nome = f'SELECT nome, telefone, email, data_de_nascimento, notas FROM contatos WHERE nome LIKE "%{nome}%" ORDER BY nome'
+    cursor.execute (comando_busca_nome)
+    resultado = cursor.fetchall()
+
+    for valor in resultado:
+        tabela.insert(parent= '', index='end', values=valor)
+
+def buscar_telefone():
+    telefone = telefone_inserido.get()
+
+    for dado in tabela.get_children():
+        tabela.delete(dado)
+    comando_busca_telefone = f'SELECT nome, telefone, email, data_de_nascimento, notas FROM contatos WHERE telefone LIKE "%{telefone}%" ORDER BY nome'
+    cursor.execute (comando_busca_telefone)
+    resultado = cursor.fetchall()
+
+    for valor in resultado:
+        tabela.insert(parent= '', index='end', values=valor)
+
+def buscar_email():
+    email = email_inserido.get()
+
+    for dado in tabela.get_children():
+        tabela.delete(dado)
+    comando_busca_email = f'SELECT nome, telefone, email, data_de_nascimento, notas FROM contatos WHERE email LIKE "%{email}%" ORDER BY nome'
+    cursor.execute (comando_busca_email)
+    resultado = cursor.fetchall()
+
+    for valor in resultado:
+        tabela.insert(parent= '', index='end', values=valor)
+
+def buscar_data():
+    data = data_inserida.get()
+
+    for dado in tabela.get_children():
+        tabela.delete(dado)
+    comando_busca_data = f'SELECT nome, telefone, email, data_de_nascimento, notas FROM contatos WHERE data_de_nascimento LIKE "%{data}%" ORDER BY nome'
+    cursor.execute (comando_busca_data)
+    resultado = cursor.fetchall()
+
+    for valor in resultado:
+        tabela.insert(parent= '', index='end', values=valor)
+
+def buscar_notas():
+    notas = notas_inseridas.get()
+
+    for dado in tabela.get_children():
+        tabela.delete(dado)
+    comando_busca_notas = f'SELECT nome, telefone, email, data_de_nascimento, notas FROM contatos WHERE notas LIKE "%{notas}%" ORDER BY nome'
+    cursor.execute (comando_busca_notas)
+    resultado = cursor.fetchall()
+
+    for valor in resultado:
+        tabela.insert(parent= '', index='end', values=valor)
 
 #Funções da interface gráfica (TKinter)
 
@@ -74,27 +151,30 @@ frame_esquerda.grid(column=0, row=1)
 frame_tabela = Frame(janela, height=250, width=500)
 frame_tabela.grid(column=1, row=1)
 
-frame_botoes = Frame(frame_esquerda, height = 50, width=200)
-frame_botoes.grid(column=0, row=0)
+frame_botoes_crud = Frame(frame_esquerda, height = 50, width=200)
+frame_botoes_crud.grid(column=0, row=0)
 
 frame_dados = Frame(frame_esquerda, height=200, width=200)
 frame_dados.grid(column=0, row=1)
+
+frame_botoes_busca = Frame(frame_esquerda, height=50, width=200)
+frame_botoes_busca.grid(column=0, row=2)
 
 #Texto de instruções
 instrucoes = Label(janela, text="Clique no botão 'Criar Contato' para criar um novo contato.")
 instrucoes.grid(column=0, row=0)
 
-#Botões de criar, buscar, editar e apagar contatos
-botao_create = Button(frame_botoes, text="Criar Contato", relief=RAISED, command = create)
+#Botões de criar, atualizar, editar e apagar contatos
+botao_create = Button(frame_botoes_crud, text="Criar Contato", relief=RAISED, command = create)
 botao_create.grid(column=0, row=1)
 
-botao_read = Button(frame_botoes, text="Buscar Contato", relief=RAISED, command=read)
+botao_read = Button(frame_botoes_crud, text="Atualizar Tabela", relief=RAISED, command=atualizar_tabela)
 botao_read.grid(column=1, row=1)
 
-botao_update = Button(frame_botoes, text="Editar Contato", relief=RAISED)
+botao_update = Button(frame_botoes_crud, text="Editar Contato", relief=RAISED, command=update)
 botao_update.grid(column=2, row=1)
 
-botao_delete = Button(frame_botoes, text="Apagar Contato", relief=RAISED, command=delete)
+botao_delete = Button(frame_botoes_crud, text="Apagar Contato", relief=RAISED, command=delete)
 botao_delete.grid(column=3, row=1)
 
 #Nomes das caixas de texto
@@ -142,47 +222,66 @@ entrada_notas.grid(column=1, row=4)
 
 #tabela dos contatos
 tabela = ttk.Treeview(frame_tabela, columns = ('Nome', 'Telefone', 'Email', 'Data_nasc', 'Notas'), show = 'headings')
+tabela.column('Nome', width=150)
 tabela.heading('Nome', text= 'Nome')
+tabela.column('Telefone', anchor=CENTER, width=100)
 tabela.heading('Telefone', text= 'Telefone')
+tabela.column('Email', width=200)
 tabela.heading('Email', text= 'E-mail')
+tabela.column('Data_nasc', anchor=CENTER, width=125)
 tabela.heading('Data_nasc', text= 'Data de Nascimento')
+tabela.column('Notas', anchor=CENTER, width=275)
 tabela.heading('Notas', text= 'Notas')
+
 tabela.grid(column=0, row=0)
 
-primeiro_read = f'SELECT nome, telefone, email, data_de_nascimento, notas FROM contatos'
+#Inserir o contato selecionado nas caixas de texto
+def selecionar_item(a):
+
+    #remover qualquer texto que já estava nas entradas
+    entrada_nome.delete(0,END)
+    entrada_telefone.delete(0,END)
+    entrada_email.delete(0,END)
+    entrada_data.delete(0,END)
+    entrada_notas.delete(0,END)
+
+    #inserir dados selecionados
+    item_selecionado = tabela.selection()
+    entrada_nome.insert(0, tabela.item(item_selecionado)['values'][0])
+    entrada_telefone.insert(0, tabela.item(item_selecionado)['values'][1])
+    entrada_email.insert(0, tabela.item(item_selecionado)['values'][2])
+    entrada_data.insert(0, tabela.item(item_selecionado)['values'][3])
+    entrada_notas.insert(0, tabela.item(item_selecionado)['values'][4])
+
+#vincular a seleção de texto à função de selecionar item
+tabela.bind("<<TreeviewSelect>>", selecionar_item)
+
+#Inserir o banco de dados na tabela pela primeira vez
+primeiro_read = f'SELECT nome, telefone, email, data_de_nascimento, notas FROM contatos ORDER BY nome'
 cursor.execute(primeiro_read)
 resultado = cursor.fetchall()
-
-contador = 0
+''
 for valor in resultado:
-    tabela.insert(parent= '', index='end', values=(valor[0], valor[1], valor[2], valor[3], valor[4]))
-    cont =+ 1
+    tabela.insert(parent= '', index='end', values=valor)
 
-#Função de atualizar tabela
-def atualizar_tabela():
+#Botões de buscar
+botao_buscar_nome = Button(frame_botoes_busca, text="Buscar Nome", relief=RAISED, command=buscar_nome)
+botao_buscar_nome.grid(column=0, row=0)
 
-    for dado in tabela:
-        tabela.delete(dado)
-    ler_todos = f'SELECT nome, telefone, email, data_de_nascimento, notas FROM contatos'
-    cursor.execute(ler_todos)
-    resultado = cursor.fetchall()
+botao_buscar_telefone = Button(frame_botoes_busca, text="Buscar Telefone", relief=RAISED, command=buscar_telefone)
+botao_buscar_telefone.grid(column=1, row=0)
 
-    global cont
-    cont = 0
-    for valor in resultado:
-        tabela.insert(parent= '', index='end', values=(valor[0], valor[1], valor[2], valor[3], valor[4]))
-        cont =+ 1
+botao_buscar_email = Button(frame_botoes_busca, text="Buscar E-mail", relief=RAISED, command=buscar_email)
+botao_buscar_email.grid(column=2, row=0)
 
-#Botão de atualizar os contatos
-botão_atualizar = Button(frame_dados, text="Atualizar Lista", relief=RAISED, command=atualizar_tabela)
-botão_atualizar.grid(column=0, row=5)
+botao_buscar_data = Button(frame_botoes_busca, text="Buscar Data de Nasc.", relief=RAISED, command=buscar_data)
+botao_buscar_data.grid(column=3, row=0)
+
+botao_buscar_notas = Button(frame_botoes_busca, text="Buscar Notas", relief=RAISED, command=buscar_notas)
+botao_buscar_notas.grid(column=4, row=0)
 
 janela.mainloop()
 
 #fecha as conexões
 cursor.close()
 conexaosql.close()
-
-#Tentar colocar a criação de contatos na mesma janela que a tabela
-#Criar contatos com entry, usando a função create
-#Adicionar read, update e delete
