@@ -1,6 +1,7 @@
 from tkinter import *
 from tkinter import ttk
 import mysql.connector
+import csv
 
 #funções do CRUD
 
@@ -145,10 +146,10 @@ janela = Tk()
 janela.title("Lista de Contatos")
 
 #separar frames
-frame_esquerda = Frame(janela, height=250, width=200)
+frame_esquerda = Frame(janela, height=300, width=200)
 frame_esquerda.grid(column=0, row=1)
 
-frame_tabela = Frame(janela, height=250, width=500)
+frame_tabela = Frame(janela, height=300, width=500)
 frame_tabela.grid(column=1, row=1)
 
 frame_botoes_crud = Frame(frame_esquerda, height = 50, width=200)
@@ -160,8 +161,11 @@ frame_dados.grid(column=0, row=1)
 frame_botoes_busca = Frame(frame_esquerda, height=50, width=200)
 frame_botoes_busca.grid(column=0, row=2)
 
+frame_export = Frame(frame_esquerda, height=50, width=200)
+frame_export.grid(column=0, row=3)
+
 #Texto de instruções
-instrucoes = Label(janela, text="Clique no botão 'Criar Contato' para criar um novo contato.")
+instrucoes = Label(janela, text="Após alterar um contato, clique em 'Atualizar Tabela' para ver as alterações.")
 instrucoes.grid(column=0, row=0)
 
 #Botões de criar, atualizar, editar e apagar contatos
@@ -260,7 +264,7 @@ tabela.bind("<<TreeviewSelect>>", selecionar_item)
 primeiro_read = f'SELECT nome, telefone, email, data_de_nascimento, notas FROM contatos ORDER BY nome'
 cursor.execute(primeiro_read)
 resultado = cursor.fetchall()
-''
+
 for valor in resultado:
     tabela.insert(parent= '', index='end', values=valor)
 
@@ -280,8 +284,32 @@ botao_buscar_data.grid(column=3, row=0)
 botao_buscar_notas = Button(frame_botoes_busca, text="Buscar Notas", relief=RAISED, command=buscar_notas)
 botao_buscar_notas.grid(column=4, row=0)
 
+#Função para exportar arquivo
+
+def export():
+    read = f'SELECT nome, telefone, email, data_de_nascimento, notas FROM contatos ORDER BY nome'
+    cursor.execute(read)
+    resultado = cursor.fetchall()
+
+    colunas = (['nome', 'telefone', 'email', 'data_de_nascimento', 'notas'])
+    nome_arquivo = 'C:/Users/lucas/Códigos/contatos.csv'
+    with open(nome_arquivo, 'w', newline="") as arquivo:
+        salvarcsv = csv.writer(arquivo)
+        salvarcsv.writerow(colunas)
+        salvarcsv.writerows(resultado)
+
+
+
+#Botões de importar e exportar
+
+botao_export = Button(frame_export, text= "Salvar Tabela (Arquivo .csv)", relief=RAISED, command=export)
+botao_export.grid(column=2, row=2)
+
 janela.mainloop()
 
 #fecha as conexões
 cursor.close()
 conexaosql.close()
+
+
+#Criar uma função de exportar a lista em um arquivo .csv (usando open, write e close)
